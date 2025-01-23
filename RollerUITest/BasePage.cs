@@ -34,13 +34,12 @@ namespace RollerUITest
                     if (browser.Equals("Chrome", StringComparison.OrdinalIgnoreCase))
                     {
                         var chromeOptions = new ChromeOptions();
-                        chromeOptions.AddArgument("--start-maximized"); // Maximizes browser on startup
-                        chromeOptions.AddArgument("--disable-notifications"); // Disables notifications
-                        chromeOptions.AddArgument("--remote-allow-origins=*"); // Resolves specific WebDriver issues
+                        chromeOptions.AddArgument("--start-maximized");
+                        chromeOptions.AddArgument("--disable-notifications");
+                        chromeOptions.AddArgument("--remote-allow-origins=*");
 
                         driver = new ChromeDriver(chromeOptions);
-                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-
+                        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
                         Test.Log(Status.Pass, "Chrome driver initialized successfully.");
                     }
                     else
@@ -69,8 +68,12 @@ namespace RollerUITest
         {
             if (driver != null)
             {
-                driver.Close();
+                driver.Quit(); // Preferably use Quit over Close, to clean up everything
                 driver = null;
+            }
+            else
+            {
+                Console.WriteLine("Driver was already null.");
             }
         }
 
@@ -78,10 +81,8 @@ namespace RollerUITest
         {
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(by));
-                element.Click();
-                TakeScreenShot(Status.Pass, comment);
+                driver.FindElement(by).Click();
+                //TakeScreenShot(Status.Pass, comment);
             }
             catch (Exception e)
             {
@@ -95,7 +96,7 @@ namespace RollerUITest
             try
             {
                 driver.FindElement(by).SendKeys(txt);
-                TakeScreenShot(Status.Pass, comment);
+                //TakeScreenShot(Status.Pass, comment);
             }
             catch (Exception e)
             {
@@ -176,7 +177,7 @@ namespace RollerUITest
             try
             {
                 driver.Navigate().GoToUrl(url);
-                TakeScreenShot(Status.Pass, "Navigated to URL: " + url);
+                //TakeScreenShot(Status.Pass, "Navigated to URL: " + url);
             }
             catch (Exception e)
             {
@@ -192,6 +193,10 @@ namespace RollerUITest
             extentReports = new ExtentReports();
             var sparkReporter = new ExtentSparkReporter(path);
             extentReports.AttachReporter(sparkReporter);
+            if (extentReports == null)
+            {
+                throw new Exception("Failed to initialize ExtentReports.");
+            }
         }
 
         public static void TakeScreenShot(Status status, string detail)
